@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Buddy AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --clay-primary: #6366f1;
+            --clay-primary-light: #818cf8;
+            --clay-bg: #f5f7ff;
+            --clay-shadow-light: rgba(255, 255, 255, 0.5);
+            --clay-shadow-dark: rgba(91, 100, 240, 0.4);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--clay-bg);
+        }
+        
+        .chat-container { 
+            height: calc(100vh - 240px);
+            min-height: 300px; 
+        }
+        
+        .clay-card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 8px 8px 16px var(--clay-shadow-dark),
+                       -8px -8px 16px var(--clay-shadow-light);
+            border: 3px solid rgba(255, 255, 255, 0.7);
+            padding: 20px;
+        }
+        
+        .clay-button {
+            background-color: var(--clay-primary);
+            border-radius: 12px;
+            box-shadow: 4px 4px 8px var(--clay-shadow-dark),
+                       -2px -2px 6px var(--clay-shadow-light);
+            border: 2px solid var(--clay-primary-light);
+            padding: 10px 20px;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .clay-button:hover {
+            box-shadow: 6px 6px 10px var(--clay-shadow-dark),
+                        -4px -4px 8px var(--clay-shadow-light);
+            transform: translateY(-2px);
+        }
+        
+        .clay-button:active {
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                        inset -2px -2px 4px rgba(255, 255, 255, 0.1);
+            transform: translateY(0);
+        }
+        
+        .clay-input {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.05),
+                        inset -2px -2px 4px rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            padding: 10px 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .clay-input:focus {
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                        inset -3px -3px 6px rgba(255, 255, 255, 0.5);
+            outline: none;
+            border-color: var(--clay-primary-light);
+        }
+        
+        .chat-bubble-user {
+            background-color: var(--clay-primary-light);
+            color: white;
+            border-radius: 18px 18px 0 18px;
+            box-shadow: 3px 3px 6px var(--clay-shadow-dark);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .chat-bubble-ai {
+            background-color: white;
+            border-radius: 18px 18px 18px 0;
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .business-model-section {
+            transition: all 0.3s ease;
+        }
+        
+        .business-model-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 8px 8px 16px var(--clay-shadow-dark),
+                       -8px -8px 16px var(--clay-shadow-light);
+        }
+
+        @media (max-width: 768px) {
+            .clay-card {
+                box-shadow: 6px 6px 12px var(--clay-shadow-dark),
+                           -6px -6px 12px var(--clay-shadow-light);
+                padding: 15px;
+            }
+            
+            .chat-container {
+                height: 350px;
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        primaryLight: '#818cf8',
+                        clayBg: '#f5f7ff',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-clayBg min-h-screen">
+    <div id="signin-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="clay-card w-full max-w-md">
+            <h1 class="text-3xl font-bold text-center mb-8 text-primary">Business Buddy AI</h1>
+            <form id="signin-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" class="clay-input w-full" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" class="clay-input w-full" required>
+                </div>
+                <button type="submit" class="clay-button w-full">Sign In</button>
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">or</p>
+                    <button type="button" id="guest-access" class="mt-2 text-primary hover:text-primaryLight font-medium">Continue as Guest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-primary">Business Buddy AI</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-status" class="text-sm font-medium text-gray-600"></span>
+                        <button id="logout" class="text-gray-600 hover:text-gray-900">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-semibold text-primary">Business Model Architect</h2>
+                    <div class="clay-card">
+                        <form id="business-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                                <input type="text" id="business-name" class="clay-input w-full" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                                <select id="industry" class="clay-input w-full" required>
+                                    <option value="">Select Industry</option>
+                                    <option value="tech">Technology</option>
+                                    <option value="retail">Retail</option>
+                                    <option value="saas">SaaS</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="healthcare">Healthcare</option>
+                                    <option value="education">Education</option>
+                                    <option value="food">Food & Beverage</option>
+                                    <option value="manufacturing">Manufacturing</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Business Description</label>
+                                <textarea id="description" rows="4" class="clay-input w-full" required></textarea>
+                            </div>
+                            <button type="submit" class="clay-button w-full mt-4">Generate Analysis</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="analysis-output" class="clay-card hidden">
+                    <h3 class="text-xl font-semibold mb-4 text-primary">Business Analysis</h3>
+                    <div id="analysis-content" class="space-y-4">
+                        <!-- Analysis content will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="business-model-canvas" class="mt-12 hidden">
+                <h2 class="text-2xl font-semibold text-primary mb-6">Business Model Canvas</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Key Partners</h3>
+                        <ul id="key-partners" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Key Activities</h3>
+                        <ul id="key-activities" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Value Propositions</h3>
+                        <ul id="value-propositions" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Customer Relationships</h3>
+                        <ul id="customer-relationships" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Customer Segments</h3>
+                        <ul id="customer-segments" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Key Resources</h3>
+                        <ul id="key-resources" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Channels</h3>
+                        <ul id="channels" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Cost Structure</h3>
+                        <ul id="cost-structure" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="clay-card business-model-section">
+                        <h3 class="text-lg font-semibold mb-2 text-primary">Revenue Streams</h3>
+                        <ul id="revenue-streams" class="text-gray-700 space-y-2 pl-4 list-disc"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12">
+                <div class="clay-card">
+                    <h3 class="text-xl font-semibold mb-4 text-primary">AI Chat Assistant</h3>
+                    <p class="text-sm text-gray-600 mb-4">Ask questions about your business model or get advice to enhance your strategy.</p>
+                    <div id="chat-container" class="chat-container overflow-y-auto p-4 mb-4 clay-input">
+                        <div class="p-4 text-center text-gray-500">
+                            <i class="bi bi-robot text-3xl mb-2 block"></i>
+                            <p>Hey there! Ask me questions about business models, strategy, or how to improve your plan.</p>
+                        </div>
+                    </div>
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input" class="clay-input flex-1" placeholder="Ask about your business model...">
+                        <button type="submit" class="clay-button">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication logic
+        let isGuest = false;
+
+        document.getElementById('signin-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            isGuest = false;
+            document.getElementById('signin-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('user-status').textContent = document.getElementById('email').value;
+        });
+
+        document.getElementById('guest-access').addEventListener('click', () => {
+            isGuest = true;
+            document.getElementById('signin-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('user-status').textContent = "Guest User";
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('signin-page').classList.remove('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            resetModelView();
+        });
+
+        function resetModelView() {
+            document.getElementById('business-name').value = '';
+            document.getElementById('industry').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('analysis-output').classList.add('hidden');
+            document.getElementById('business-model-canvas').classList.add('hidden');
+            document.getElementById('chat-container').innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    <i class="bi bi-robot text-3xl mb-2 block"></i>
+                    <p>Hey there! Ask me questions about business models, strategy, or how to improve your plan.</p>
+                </div>
+            `;
+        }
+
+        // Business analysis generation
+        document.getElementById('business-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const businessName = document.getElementById('business-name').value;
+            const industry = document.getElementById('industry').value;
+            const description = document.getElementById('description').value;
+
+            // Show loading state
+            document.getElementById('analysis-output').classList.remove('hidden');
+            document.getElementById('analysis-content').innerHTML = `
+                <div class="flex justify-center items-center py-10">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                </div>
+                <p class="text-center text-gray-600">Generating your business analysis...</p>
+            `;
+
+            // Simulate AI analysis with delay to show loading
+            setTimeout(() => {
+                const analysis = generateAnalysis(businessName, industry, description);
+                document.getElementById('analysis-content').innerHTML = analysis;
+                
+                // Generate business model canvas
+                generateBusinessModelCanvas(businessName, industry, description);
+                document.getElementById('business-model-canvas').classList.remove('hidden');
+                
+                // Add welcome message from AI after analysis
+                setTimeout(() => {
+                    addChatMessage('ai', `I've analyzed your business idea for "${businessName}" in the ${getIndustryName(industry)} industry. Feel free to ask me any questions about the analysis or how to improve specific aspects of your business model!`);
+                }, 1000);
+            }, 2000);
+        });
+
+        function getIndustryName(industryValue) {
+            const industries = {
+                'tech': 'Technology',
+                'retail': 'Retail',
+                'saas': 'SaaS',
+                'finance': 'Finance',
+                'healthcare': 'Healthcare',
+                'education': 'Education',
+                'food': 'Food & Beverage',
+                'manufacturing': 'Manufacturing'
+            };
+            return industries[industryValue] || industryValue;
+        }
+
+        // Chat functionality
+        document.getElementById('chat-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const message = input.value;
+            if (message.trim()) {
+                addChatMessage('user', message);
+                // Clear input right away
+                input.value = '';
+                
+                // Simulate AI thinking with typing indicator
+                const chatContainer = document.getElementById('chat-container');
+                const typingIndicator = document.createElement('div');
+                typingIndicator.id = 'typing-indicator';
+                typingIndicator.className = 'flex space-x-2 p-3 chat-bubble-ai inline-block max-w-[80%]';
+                typingIndicator.innerHTML = `
+                    <div class="typing-dot animate-pulse bg-gray-500 h-2 w-2 rounded-full"></div>
+                    <div class="typing-dot animate-pulse bg-gray-500 h-2 w-2 rounded-full" style="animation-delay: 0.2s;"></div>
+                    <div class="typing-dot animate-pulse bg-gray-500 h-2 w-2 rounded-full" style="animation-delay: 0.4s;"></div>
+                `;
+                chatContainer.appendChild(typingIndicator);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Simulate AI response after a short delay
+                setTimeout(() => {
+                    // Remove typing indicator
+                    document.getElementById('typing-indicator').remove();
+                    
+                    // Add AI response
+                    const aiResponse = generateAIResponse(message);
+                    addChatMessage('ai', aiResponse);
+                }, 1500);
+            }
+        });
+
+        function addChatMessage(sender, message) {
+            const container = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-4 ${sender === 'user' ? 'text-right' : 'text-left'}`;
+            messageDiv.innerHTML = `
+                <div class="${sender === 'user' ? 'chat-bubble-user inline-block p-3 max-w-[80%]' : 'chat-bubble-ai inline-block p-3 max-w-[80%]'}">
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function generateAnalysis(businessName, industry, description) {
+            // Craft the analysis based on industry
+            let riskLevel, growthPotential, competitionLevel;
+            
+            switch(industry) {
+                case 'tech':
+                    riskLevel = 'Moderate to High';
+                    growthPotential = 'High';
+                    competitionLevel = 'Intense';
+                    break;
+                case 'retail':
+                    riskLevel = 'Moderate';
+                    growthPotential = 'Stable';
+                    competitionLevel = 'High';
+                    break;
+                case 'saas':
+                    riskLevel = 'Moderate';
+                    growthPotential = 'Very High';
+                    competitionLevel = 'Growing';
+                    break;
+                case 'finance':
+                    riskLevel = 'High';
+                    growthPotential = 'Moderate';
+                    competitionLevel = 'Established';
+                    break;
+                case 'healthcare':
+                    riskLevel = 'Moderate';
+                    growthPotential = 'High';
+                    competitionLevel = 'Regulated';
+                    break;
+                default:
+                    riskLevel = 'Moderate';
+                    growthPotential = 'Variable';
+                    competitionLevel = 'Moderate';
+            }
+            
+            return `
+                <div class="space-y-6">
+                    <div class="clay-card business-model-section">
+                        <h4 class="font-semibold text-primary flex items-center">
+                            <i class="bi bi-graph-up-arrow mr-2"></i>Business Summary
+                        </h4>
+                        <p class="text-gray-700 mt-2">
+                            <strong>${businessName}</strong> operates in the ${getIndustryName(industry)} sector with a focus on ${description.length > 100 ? description.substring(0, 100) + '...' : description}
+                        </p>
+                    </div>
+                    
+                    <div class="clay-card business-model-section">
+                        <h4 class="font-semibold text-primary flex items-center">
+                            <i class="bi bi-bar-chart-line mr-2"></i>Market Analysis
+                        </h4>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Risk Level:</span>
+                                <span class="font-medium">${riskLevel}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Growth Potential:</span>
+                                <span class="font-medium">${growthPotential}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Competition Level:</span>
+                                <span class="font-medium">${competitionLevel}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="clay-card business-model-section">
+                        <h4 class="font-semibold text-primary flex items-center">
+                            <i class="bi bi-lightning-charge mr-2"></i>Growth Strategy
+                        </h4>
+                        <ul class="list-disc pl-5 text-gray-700 mt-2">
+                            ${industry === 'tech' ? '<li>Focus on innovation and rapid prototyping</li>' : ''}
+                            ${industry === 'saas' ? '<li>Implement freemium model to increase user base</li>' : ''}
+                            ${industry === 'retail' ? '<li>Develop omnichannel presence</li>' : ''}
+                            <li>${industry === 'tech' || industry === 'saas' ? 'Leverage API integrations with existing platforms' : 'Develop strategic partnerships to expand reach'}</li>
+                            <li>Implement data-driven customer acquisition strategy</li>
+                            <li>Focus on retention through exceptional customer experience</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="clay-card business-model-section bg-primary/5">
+                        <h4 class="font-semibold text-primary flex items-center">
+                            <i class="bi bi-lightbulb mr-2"></i>AI Recommendations
+                        </h4>
+                        <p class="text-primary-800 mt-2">
+                            Based on your industry and description, we recommend:
+                        </p>
+                        <ul class="list-disc pl-5 text-primary-700 mt-2">
+                            ${industry === 'tech' || industry === 'saas' 
+                                ? '<li>Prioritize product-market fit over feature development</li>' 
+                                : '<li>Focus on building customer loyalty programs</li>'}
+                            <li>Invest in ${industry === 'retail' || industry === 'food' ? 'local marketing and community engagement' : 'digital presence and SEO optimization'}</li>
+                            <li>Consider ${industry === 'finance' || industry === 'healthcare' ? 'regulatory compliance as a competitive advantage' : 'subscription models for recurring revenue'}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateBusinessModelCanvas(businessName, industry, description) {
+            // Generate content for each section of the business model canvas
+            const canvasData = getBusinessModelData(industry, description);
+            
+            document.getElementById('key-partners').innerHTML = canvasData.keyPartners.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('key-activities').innerHTML = canvasData.keyActivities.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('value-propositions').innerHTML = canvasData.valuePropositions.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('customer-relationships').innerHTML = canvasData.customerRelationships.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('customer-segments').innerHTML = canvasData.customerSegments.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('key-resources').innerHTML = canvasData.keyResources.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('channels').innerHTML = canvasData.channels.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('cost-structure').innerHTML = canvasData.costStructure.map(item => `<li>${item}</li>`).join('');
+            document.getElementById('revenue-streams').innerHTML = canvasData.revenueStreams.map(item => `<li>${item}</li>`).join('');
+        }
+
+        function getBusinessModelData(industry, description) {
+            // Industry-specific canvas data
+            const canvasData = {
+                tech: {
+                    keyPartners: [
+                        "Cloud service providers",
+                        "Hardware manufacturers",
+                        "Software development agencies",
+                        "Technology consultants"
+                    ],
+                    keyActivities: [
+                        "Research & Development",
+                        "Product engineering",
+                        "Technical support",
+                        "Continuous integration"
+                    ],
+                    valuePropositions: [
+                        "Innovative technological solutions",
+                        "Increased efficiency through automation",
+                        "Reduced operational costs",
+                        "Competitive technical advantage"
+                    ],
+                    customerRelationships: [
+                        "Self-service portals",
+                        "Technical support teams",
+                        "Community forums",
+                        "Knowledge bases"
+                    ],
+                    customerSegments: [
+                        "Enterprise businesses",
+                        "SMBs with tech needs",
+                        "Technical teams",
+                        "Early adopters"
+                    ],
+                    keyResources: [
+                        "Engineering talent",
+                        "Intellectual property",
+                        "Development infrastructure",
+                        "Testing environments"
+                    ],
+                    channels: [
+                        "Direct sales team",
+                        "Online marketplace",
+                        "Partner network",
+                        "Technology conferences"
+                    ],
+                    costStructure: [
+                        "R&D expenses",
+                        "Engineering salaries",
+                        "Infrastructure costs",
+                        "Marketing and sales"
+                    ],
+                    revenueStreams: [
+                        "Product sales",
+                        "Licensing fees",
+                        "Implementation services",
+                        "Maintenance contracts"
+                    ]
+                },
+                
+                retail: {
+                    keyPartners: [
+                        "Manufacturers",
+                        "Wholesale suppliers",
+                        "Logistics companies",
+                        "Payment processors"
+                    ],
+                    keyActivities: [
+                        "Inventory management",
+                        "Visual merchandising",
+                        "Customer service",
+                        "Supply chain optimization"
+                    ],
+                    valuePropositions: [
+                        "Quality product selection",
+                        "Convenient shopping experience",
+                        "Competitive pricing",
+                        "Personalized service"
+                    ],
+                    customerRelationships: [
+                        "In-store assistance",
+                        "Loyalty programs",
+                        "Customer support",
+                        "Personalized recommendations"
+                    ],
+                    customerSegments: [
+                        "Local shoppers",
+                        "Online consumers",
+                        "Budget-conscious buyers",
+                        "Premium product seekers"
+                    ],
+                    keyResources: [
+                        "Retail space",
+                        "Inventory",
+                        "Staff",
+                        "Point of sale systems"
+                    ],
+                    channels: [
+                        "Physical stores",
+                        "E-commerce website",
+                        "Mobile app",
+                        "Social media shops"
+                    ],
+                    costStructure: [
+                        "Inventory purchases",
+                        "Retail space rent",
+                        "Employee wages",
+                        "Marketing expenses"
+                    ],
+                    revenueStreams: [
+                        "Product sales",
+                        "Service fees",
+                        "Extended warranties",
+                        "Membership programs"
+                    ]
+                },
+                
+                saas: {
+                    keyPartners: [
+                        "Data centers",
+                        "Payment processors",
+                        "Integration partners",
+                        "Marketing agencies"
+                    ],
+                    keyActivities: [
+                        "Software development",
+                        "Platform maintenance",
+                        "Customer onboarding",
+                        "Feature upgrades"
+                    ],
+                    valuePropositions: [
+                        "Streamlined workflows",
+                        "Reduced IT costs",
+                        "Scalable solutions",
+                        "Data-driven insights"
+                    ],
+                    customerRelationships: [
+                        "Account managers",
+                        "Help desk",
+                        "Online tutorials",
+                        "Automated onboarding"
+                    ],
+                    customerSegments: [
+                        "Enterprise clients",
+                        "SMB customers",
+                        "Vertical-specific users",
+                        "Freelancers/solopreneurs"
+                    ],
+                    keyResources: [
+                        "Development team",
+                        "Cloud infrastructure",
+                        "Customer data",
+                        "User experience design"
+                    ],
+                    channels: [
+                        "Website",
+                        "Inside sales team",
+                        "Partner referrals",
+                        "App marketplaces"
+                    ],
+                    costStructure: [
+                        "Development costs",
+                        "Server expenses",
+                        "Customer acquisition",
+                        "Support team"
+                    ],
+                    revenueStreams: [
+                        "Subscription fees",
+                        "Tiered pricing plans",
+                        "Add-on features",
+                        "API usage fees"
+                    ]
+                },
+                
+                finance: {
+                    keyPartners: [
+                        "Banking institutions",
+                        "Security firms",
+                        "Regulatory consultants",
+                        "Financial data providers"
+                    ],
+                    keyActivities: [
+                        "Risk assessment",
+                        "Compliance management",
+                        "Financial analysis",
+                        "Transaction processing"
+                    ],
+                    valuePropositions: [
+                        "Secure financial management",
+                        "Reduced financial risk",
+                        "Regulatory compliance",
+                        "Improved liquidity"
+                    ],
+                    customerRelationships: [
+                        "Personal advisors",
+                        "Self-service portals",
+                        "Service centers",
+                        "Automated notifications"
+                    ],
+                    customerSegments: [
+                        "Individual investors",
+                        "Corporate clients",
+                        "Small businesses",
+                        "High-net-worth individuals"
+                    ],
+                    keyResources: [
+                        "Financial expertise",
+                        "Secure technology",
+                        "Regulatory licenses",
+                        "Analytical tools"
+                    ],
+                    channels: [
+                        "Branch offices",
+                        "Online platform",
+                        "Mobile applications",
+                        "Advisor network"
+                    ],
+                    costStructure: [
+                        "Compliance costs",
+                        "Technology infrastructure",
+                        "Professional staff",
+                        "Risk management"
+                    ],
+                    revenueStreams: [
+                        "Service fees",
+                        "Transaction commissions",
+                        "Interest income",
+                        "Management fees"
+                    ]
+                },
+                
+                healthcare: {
+                    keyPartners: [
+                        "Medical suppliers",
+                        "Insurance companies",
+                        "Healthcare providers",
+                        "Research institutions"
+                    ],
+                    keyActivities: [
+                        "Patient care",
+                        "Medical research",
+                        "Compliance monitoring",
+                        "Health education"
+                    ],
+                    valuePropositions: [
+                        "Improved health outcomes",
+                        "Patient-centered care",
+                        "Accessible health services",
+                        "Innovative treatments"
+                    ],
+                    customerRelationships: [
+                        "Personalized care plans",
+                        "Follow-up protocols",
+                        "Patient portals",
+                        "Health coaching"
+                    ],
+                    customerSegments: [
+                        "Patients with specific conditions",
+                        "Health-conscious individuals",
+                        "Insurance companies",
+                        "Corporate wellness programs"
+                    ],
+                    keyResources: [
+                        "Medical expertise",
+                        "Healthcare facilities",
+                        "Medical equipment",
+                        "Patient data"
+                    ],
+                    channels: [
+                        "Clinics/hospitals",
+                        "Telehealth platforms",
+                        "Mobile health apps",
+                        "Community outreach"
+                    ],
+                    costStructure: [
+                        "Medical staff",
+                        "Facility maintenance",
+                        "Regulatory compliance",
+                        "Medical equipment"
+                    ],
+                    revenueStreams: [
+                        "Service fees",
+                        "Insurance reimbursements",
+                        "Subscription programs",
+                        "Research grants"
+                    ]
+                },
+
+                education: {
+                    keyPartners: [
+                        "Content creators",
+                        "Educational institutions",
+                        "Technology providers",
+                        "Subject matter experts"
+                    ],
+                    keyActivities: [
+                        "Curriculum development",
+                        "Content delivery",
+                        "Student assessment",
+                        "Learning support"
+                    ],
+                    valuePropositions: [
+                        "Accessible learning opportunities",
+                        "Personalized education paths",
+                        "Industry-relevant skills",
+                        "Recognized certifications"
+                    ],
+                    customerRelationships: [
+                        "Tutoring services",
+                        "Learning communities",
+                        "Progress tracking",
+                        "Feedback mechanisms"
+                    ],
+                    customerSegments: [
+                        "K-12 students",
+                        "Higher education students",
+                        "Professional learners",
+                        "Lifelong learners"
+                    ],
+                    keyResources: [
+                        "Educational content",
+                        "Teaching platforms",
+                        "Assessment systems",
+                        "Accreditations"
+                    ],
+                    channels: [
+                        "Learning management systems",
+                        "Mobile applications",
+                        "In-person centers",
+                        "Partner institutions"
+                    ],
+                    costStructure: [
+                        "Content development",
+                        "Platform maintenance",
+                        "Instructor compensation",
+                        "Marketing expenses"
+                    ],
+                    revenueStreams: [
+                        "Tuition fees",
+                        "Course subscriptions",
+                        "Certification charges",
+                        "Enterprise training contracts"
+                    ]
+                },
+
+                food: {
+                    keyPartners: [
+                        "Food suppliers",
+                        "Delivery services",
+                        "Equipment vendors",
+                        "Local farmers"
+                    ],
+                    keyActivities: [
+                        "Food preparation",
+                        "Quality control",
+                        "Inventory management",
+                        "Customer service"
+                    ],
+                    valuePropositions: [
+                        "Quality food offerings",
+                        "Unique culinary experience",
+                        "Convenient dining options",
+                        "Special dietary accommodations"
+                    ],
+                    customerRelationships: [
+                        "Personal service",
+                        "Loyalty programs",
+                        "Feedback mechanisms",
+                        "Community engagement"
+                    ],
+                    customerSegments: [
+                        "Local diners",
+                        "Busy professionals",
+                        "Health-conscious eaters",
+                        "Special occasion diners"
+                    ],
+                    keyResources: [
+                        "Kitchen facilities",
+                        "Culinary talent",
+                        "Recipes/menu",
+                        "Dining space"
+                    ],
+                    channels: [
+                        "Physical location",
+                        "Delivery apps",
+                        "Online ordering",
+                        "Catering services"
+                    ],
+                    costStructure: [
+                        "Food ingredients",
+                        "Staff wages",
+                        "Facility costs",
+                        "Equipment maintenance"
+                    ],
+                    revenueStreams: [
+                        "Food sales",
+                        "Beverage sales",
+                        "Catering services",
+                        "Merchandise"
+                    ]
+                },
+
+                manufacturing: {
+                    keyPartners: [
+                        "Raw material suppliers",
+                        "Equipment providers",
+                        "Logistics companies",
+                        "Distribution partners"
+                    ],
+                    keyActivities: [
+                        "Production processes",
+                        "Quality assurance",
+                        "Supply chain management",
+                        "Product development"
+                    ],
+                    valuePropositions: [
+                        "High-quality products",
+                        "Cost-efficient manufacturing",
+                        "Customization options",
+                        "Reliable delivery"
+                    ],
+                    customerRelationships: [
+                        "Account management",
+                        "Technical support",
+                        "Order fulfillment",
+                        "Product training"
+                    ],
+                    customerSegments: [
+                        "Industrial clients",
+                        "Wholesalers",
+                        "Retailers",
+                        "End consumers"
+                    ],
+                    keyResources: [
+                        "Production facilities",
+                        "Manufacturing equipment",
+                        "Technical expertise",
+                        "Material inventories"
+                    ],
+                    channels: [
+                        "Direct sales",
+                        "Distributor networks",
+                        "Online marketplace",
+                        "Industry exhibitions"
+                    ],
+                    costStructure: [
+                        "Raw materials",
+                        "Production labor",
+                        "Equipment maintenance",
+                        "Facility operations"
+                    ],
+                    revenueStreams: [
+                        "Product sales",
+                        "Customization services",
+                        "Maintenance contracts",
+                        "Spare parts"
+                    ]
+                },
+
+                // Default for other industries
+                default: {
+                    keyPartners: [
+                        "Suppliers",
+                        "Technology providers",
+                        "Marketing partners",
+                        "Industry associations"
+                    ],
+                    keyActivities: [
+                        "Service/product delivery",
+                        "Customer relationship management",
+                        "Operations management",
+                        "Business development"
+                    ],
+                    valuePropositions: [
+                        "Quality service/product",
+                        "Customer-focused solutions",
+                        "Competitive pricing",
+                        "Industry expertise"
+                    ],
+                    customerRelationships: [
+                        "Personal assistance",
+                        "Self-service options",
+                        "Community building",
+                        "Automated services"
+                    ],
+                    customerSegments: [
+                        "Primary target audience",
+                        "Secondary markets",
+                        "B2B clients",
+                        "B2C customers"
+                    ],
+                    keyResources: [
+                        "Human resources",
+                        "Physical assets",
+                        "Intellectual property",
+                        "Financial resources"
+                    ],
+                    channels: [
+                        "Direct sales",
+                        "Online presence",
+                        "Partner distribution",
+                        "Physical locations"
+                    ],
+                    costStructure: [
+                        "Fixed costs",
+                        "Variable costs",
+                        "Operational expenses",
+                        "Marketing and sales"
+                    ],
+                    revenueStreams: [
+                        "Product/service sales",
+                        "Subscription revenue",
+                        "Usage fees",
+                        "Additional services"
+                    ]
+                }
+            };
+            
+            return canvasData[industry] || canvasData.default;
+        }
+
+        function generateAIResponse(question) {
+            // Simulated AI responses based on question patterns
+            question = question.toLowerCase();
+            
+            if (question.includes('revenue') || question.includes('money') || question.includes('profit')) {
+                return "To improve your revenue streams, consider implementing tiered pricing strategies, exploring subscription models for recurring revenue, and developing complementary products or services. Focus on customer lifetime value rather than one-time purchases.";
+            }
+            
+            if (question.includes('market') || question.includes('competition') || question.includes('competitor')) {
+                return "For effective market positioning, conduct a thorough competitive analysis to identify gaps. Differentiate your offering through specialized features, superior customer service, or unique pricing models. Consider targeting underserved market segments where larger competitors may not be focusing.";
+            }
+            
+            if (question.includes('customer') || question.includes('client') || question.includes('user')) {
+                return "To strengthen customer relationships, implement a systematic feedback collection process, develop personalized communication strategies, and create community-building initiatives. Consider loyalty programs that reward repeat business and referrals.";
+            }
+            
+            if (question.includes('cost') || question.includes('expense') || question.includes('budget')) {
+                return "To optimize your cost structure, identify core vs. non-core activities and consider outsourcing the latter. Implement regular cost audits, negotiate volume-based discounts with suppliers, and explore technology solutions that can automate repetitive tasks.";
+            }
+            
+            if (question.includes('partnership') || question.includes('partner') || question.includes('collaboration')) {
+                return "Strategic partnerships can significantly enhance your business model. Look for complementary businesses where you can create win-win scenarios. Consider co-marketing opportunities, referral programs, and technology integrations that can expand your reach without substantial investment.";
+            }
+            
+            if (question.includes('scale') || question.includes('grow') || question.includes('expansion')) {
+                return "To scale effectively, ensure your core operations are standardized and documented. Invest in systems that can handle increased volume without proportional cost increases. Consider a phased growth approach with clear metrics for each stage, and be prepared to adapt your organizational structure as you expand.";
+            }
+
+            if (question.includes('risk') || question.includes('threat') || question.includes('challenge')) {
+                return "Risk management is essential for sustainable growth. Develop contingency plans for your most critical business functions. Diversify your supplier and customer base to reduce dependency risks. Consider insurance products specific to your industry, and implement regular risk assessment reviews as part of your strategic planning process.";
+            }
+            
+            // Default response for other questions
+            return "That's an interesting aspect of your business model. To develop this area further, I recommend reviewing industry benchmarks, consulting with domain experts, and implementing iterative testing approaches to find what works best for your specific context. Would you like me to explore any particular aspect in more detail?";
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
